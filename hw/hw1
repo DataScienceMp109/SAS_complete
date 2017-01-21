@@ -1,1 +1,72 @@
 
+
+libname l '/folders/myfolders';
+
+*q9;
+
+data q9;
+input @1 ID @4 (q1-q5)(1.) @9 (q6-q10 Height Age)(2.) ;
+
+datalines;
+1011132410161415156823 
+1021433212121413167221 
+1032334214141212106628 
+1041553216161314126622
+;
+
+run;
+
+
+*q10;
+data q10;
+infile '/folders/myfolders/sas_complete/hk_data/rent_people.txt';
+length cstnumb cstname pstnumb pstname $20.;
+input cstnumb & $ cstname & $ pstnumb & $ pstname & $ ;
+run;
+
+
+
+
+
+*q11;
+
+*method1;
+PROC IMPORT OUT= WORK.business
+     DATAFILE= '/folders/myfolders/sas_complete/hk_data/businessacc.CSV' 
+     DBMS=CSV REPLACE;
+     GETNAMES=YES;
+     DATAROW=2;
+RUN;
+
+
+*method2;
+data business2;
+infile '/folders/myfolders/sas_complete/hk_data/businessacc.CSV' DSD firstobs=2 obs=max missover
+truncover;
+length id $20. num Bureau $20. tradeline $20. open_date 8. acc_num 8. limited 8.
+Acc_banlance 8. Am_pastdue 8. monthly_pay 8. acc_name $20. acc_type $20.;
+Input id $ num Bureau $ tradeline $ open_date: mmddyy10. acc_num limited
+Acc_banlance Am_pastdue monthly_pay acc_name $ acc_type $;
+format open_date mmddyy10.;
+RUN;
+
+
+DATA test;
+  infile datalines truncover;
+  length  lastn $ 21 Firstn $ 10 Empid $ 5 Jobcode $ 9;
+ INPUT lastn $ Firstn $ Empid $ Jobcode $;
+ DATALINES ;
+LANGKAMM SARAH E0045 Mechanic
+TORRES JAN E0029 Pi
+SMITH MICHAEL E0065
+LEISTNER COLIN E0116 Mechanic
+TOMAS HARALD
+WADE KIRSTEN E0126 Pilot
+WAUGH TIM E0204 Pilot
+ ;
+RUN;
+
+
+/* missover truncover;
+http://www2.sas.com/proceedings/sugi26/p009-26.pdf
+*/
