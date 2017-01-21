@@ -1,0 +1,50 @@
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+PROC EXPORT 
+DATA= l.retail_sales
+DBMS= csv 
+OUTFILE= '/folders/myfolders/sas_complete/hk_data/retail_sales.csv'
+
+REPLACE;
+PUTNAMES= no;
+run;
+
+*q2;
+
+PROC EXPORT 
+DATA= l.retail_sales
+DBMS= csv
+OUTFILE= '/folders/myfolders/sas_complete/hk_data/retail_sales2.csv'
+
+REPLACE;
+PUTNAMES= yes;
+delimiter= '7C'x;
+run;
+
+*q3;
+
+
+PROC import
+DATAfile= '/folders/myfolders/sas_complete/hk_data/retail_sales.csv'
+DBMS= csv 
+OUT= retail_sales_3
+REPLACE;
+datarow=1;
+getnames=no;
+
+run;
+
+*q4;
+
+
+PROC import
+out= retail_sales_4
+DBMS= csv 
+datafile= '/folders/myfolders/sas_complete/hk_data/retail_sales2.csv'
+REPLACE;
+getnames= yes;
+datarow=2;
+delimiter= '|';
+run;
