@@ -1,0 +1,90 @@
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+data sub1;
+ set l.Creditacc_files;
+ if (age ge 45 & age le 55 )or (income ge 40000);
+run;
+
+*q2;
+data sub2;
+ set l.Creditacc_files;
+ if (age ge 45 & age le 55 )or  ((income ne '') &(income le 40000));
+run;
+
+*q3;
+data sub3;
+ set l.Creditacc_files (firstobs= 1 obs=30);
+ if income = '' then income = 0 ;
+run;
+
+*q4;
+data sub4;
+ set l.Creditacc_files;
+ if credit_limit >0 then 
+ utilization = revolve_bal/credit_limit;
+ if age = '' then age =0;
+ if imcome = '' then income = 0;
+ keep id age income revolve_bal credit_limit  utilization;
+run;
+
+*2nd method;
+data sub4;
+ set l.Creditacc_files;
+ if credit_limit >0 then 
+ utilization = revolve_bal/credit_limit;
+ 
+ array miss[2] age income;
+/*  array miss_index[2] age_1 income_1; */
+ do i = 1 to 2;
+/*   miss_index[i]=miss[i]; */
+  if miss[i]=. then miss[i]=0;
+ end;
+ keep missid age income revolve_bal credit_limit  utilization;
+run;
+
+data sub4_0;
+ set sub4;
+ if utilization >0.4 or credit_limit = '' or credit_limit = 0;
+run;
+
+
+*q5;
+data sub5;
+ set l.Fin_account;
+if (Credit_Lim1012 ne '' and Credit_Lim1012 ne 0)then
+utilization=100*Tot_New_Bal1012/ Credit_Lim1012;
+if (Credit_Lim1012 = '' or Credit_Lim1012 = 0)then
+utilization=999;
+run;
+
+
+*q6;
+data normal_fin_acc;
+ set sub5;
+if utilization >=0 and utilization <=100;
+run;
+
+
+*q7;
+data normal_fin_acc;
+ set normal_fin_acc;
+select;
+ when (70 le utilization le 100)  ut_level = 'high' ;
+ when (35 le unilization le 69)  ut_level = 'medium';
+ otherwise ut_level='low';
+end;
+keep ACCT_KEY Tot_New_Bal1012 Credit_Lim1012 utilization ut_level Purchases;
+run;
+
+
+*q8;
+data acc_ind;
+ set normal_fin_acc;
+if Tot_New_Bal1012 = 0 then bal_miss = 1;
+else bal_miss =0;
+if Credit_Lim1012 = 0 then limit_miss = 1;
+else limit_miss =0;
+keep ACCT_KEY ut_level bal_miss limit_miss;
+run;
