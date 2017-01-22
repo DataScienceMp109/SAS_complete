@@ -1,0 +1,147 @@
+
+*invlue;
+*https://onlinecourses.science.psu.edu/stat480/node/75;
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+proc format;
+value  age_group
+1 = '18 to 24 years old'
+2 = "25 to 44 years old" 
+3 = "45 to 64 years old" 
+4 = "65 years old and over" 
+. = "Missing";
+run;
+
+proc format;
+value downtown_area
+0 = "Rural area" 
+1 = "Urban" 
+2 = "Suburb" 
+. = "Missing";
+
+value likefood
+1 = "Excellent" 
+2 = "Very good" 
+3 = "Good" 
+4 = "Fair" 
+5 = "Poor" 
+. = "Missing";
+
+value $ Howorder 
+'01' = "on site" 
+'02' = "delivery" 
+'.' = "Missing";
+
+value ser_satisfaction 
+1 = "Strongly agree" 
+2 = "Agree" 
+3 = "Disagree" 
+4 = "Strongly disagree" 
+. = "Missing";
+
+value service_quality
+1 = "Excellent" 
+2 = "Very good" 
+3 = "Good" 
+4 = "Fair" 
+5 = "Poor" 
+. = "Missing";
+
+value highest_education
+1 = "No schooling" 
+2 = "Completed elementary" 
+3 = "Completed secondary" 
+4 = "Completed college" 
+5 = "Completed university" 
+6 = "Other education or training" 
+7 = "Others" . ="Missing";
+
+value job_type
+1 = "Employed full-time" 
+2 = "Employed part-time" 
+3 = "Unemployed and looking for work" 
+4 = "Unemployed and looking for work" 
+. = "Missing";
+
+value yearly_income 
+10 = "$50,000 or more but less than $60,000" 
+11 = "$60,000 or more but less than $70,000" 
+12 = "$70,000 or more but less than $80,000" 
+13 = "$80,000 or more but less than $90,000" 
+14 = "$90,000 or more but less than $100,000" 
+15 = "$100,000 or more but less than $150,000" 
+16 = "$150,000 and over" . = "Missing";
+run;
+
+
+data b;
+
+input number;
+format number yearly_income.;
+datalines;
+10
+11
+15
+14
+;
+run;
+
+*q2;
+
+proc contents data=l.stock_price out=v;
+run;
+
+data var_name;
+ set v;
+ keep name;
+run;
+
+proc transpose data=var_name;
+var name;
+run;
+
+data stock_price_1;
+ set l.stock_price;
+array old_col[4] price_close	price_high	price_low	price_open;
+array new_col[4] close	high	low open;
+do i=1 to dim(old_col);
+new_col[i]=old_col[i];
+end;
+run;
+
+*method2;
+data stock_pr2;
+ set l.stock_price;
+ close=input(price_close, 8.2);
+ open=input(price_open, 8.2);
+ low=input(price_low,8.2);
+ high=input(price_high,8.2);
+
+run;
+*q3;
+
+*format signs include or not include or range;
+*link: https://v8doc.sas.com/sashtml/proc/zalrange.htm;
+
+
+proc format;
+value price_bucket
+0 -< 19.99 = '0_20'
+20-< 49.99 = '20_50'
+50-< 99.99 = '50_100'
+99.99 - high = '100plus'
+;
+run;
+
+data stock_price_2;
+ set stock_price_1;
+format open price_bucket.;
+open_bucket=put(open, price_bucket.);
+
+run;
+
+*q4;
+
+
