@@ -1,0 +1,176 @@
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+*concatenate :
+*link: http://support.sas.com/kb/24/589.html;
+
+*compress;
+*link: https://sites.google.com/site/sasbuddy/sas-string-function-compress;
+*link: https://sasreference.wordpress.com/2008/01/29/4-functions-to-remove-blanks/;
+
+*strip;
+*link: http://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm#a002295689.htm;
+*note: strip = trim(left(var));
+
+*compbl;
+*link: https://v8doc.sas.com/sashtml/lgref/z0214211.htm;
+
+data COLLECTIONRATE_new;
+ set l.COLLECTIONRATE;
+ charge_date_1 = put(charge_date,mmddyy8.);
+tran_id= catx('',agency_symbol, charge_date_1 ,'_', _n_);
+if rate = . or rate=0 then rate_change_ratio = 'N/A';
+else rate_change_ratio = 100*(rate_2006-rate)/rate;
+run;
+
+*method2;
+data COLLECTIONRATE_new;
+ set l.COLLECTIONRATE;
+ charge_date_1 = put(charge_date,mmddyy8.);
+tran_id= catx('',agency_symbol, charge_date_1 ,'_', _n_);
+rate_change_ratio = 100*(rate_2006-rate)/rate;
+if _error_ or rate=. then do;
+_error_=0;
+rate_change_ratio= 'N\A';
+end;
+run;
+
+*q2;
+
+data COLLECTIONRATE_new_2;
+ set COLLECTIONRATE_new;
+if rate = . then delete;
+rename rate=charge_ratio;
+label agency_name = 'Collection Agency';
+keep agency_name charge_date rate;
+run;
+
+*q3;
+data COLLECTIONRATE_new_2(keep= agency_name charge_date rate);
+ set COLLECTIONRATE_new;
+if rate = . then delete;
+rename rate=charge_ratio;
+label agency_name = 'Collection Agency';
+/* keep agency_name charge_date rate; */
+run;
+
+
+
+*q4;
+data COLLECTIONRATE_new_2(keep= agency_name charge_date charge_ratio );
+ set COLLECTIONRATE_new(rename=(rate=charge_ratio));
+if rat= . then delete;
+
+label agency_name = 'Collection Agency';
+/* keep agency_name charge_date rate; */
+run;
+
+*q6;
+
+*proc transpose;
+*link: http://www.listendata.com/2015/08/sas-proc-transpose-explained.html;
+*link: http://libguides.library.kent.edu/SAS/TransposeData;
+
+data temp_city;
+ input city $ Spring Summer Fall Winter;
+ datalines;
+ Toronto 20 37 19 -21
+ Beijing 25 39 16 0
+ London 17 29 13 1
+ Newyork 20 30 11 -9
+ ;
+run;
+
+proc sort data=temp_city;
+by city;
+run;
+
+proc transpose data = temp_city out = temp_city_new name = season prefix = Temperature;
+by city;
+var _numeric_;
+run;
+
+*method2;
+data temperature_city_tr;
+set temp_city;
+city_name=city; season='spring'; Temperature=spring; output;
+city_name=city; season='summer'; Temperature=summer; output;
+city_name=city; season='fall'; Temperature=fall; output;
+city_name=city; season='winter'; Temperature=winter; output;
+keep city_name season Temperature;
+Run;
+
+
+*q7;
+
+*first last by;
+*link: http://support.sas.com/documentation/cdl/en/lrcon/62955/HTML/default/viewer.htm#a000761931.htm;
+
+
+*SAS PDV
+*Link: http://www.sas.com/content/dam/SAS/en_ca/User%20Group%20Presentations/TASS/Mehatab-DataStepPDV.pdf;
+
+proc sort data=l.Sales_records out=temp; 
+by sales_id transaction_date; 
+Run;
+
+data temp_2;
+ set temp;
+by sales_id transaction_date; 
+
+if first.sales_id then cum_sale=sale_amount;
+else do;
+retain cum_sale;
+cum_sale=cum_sale+sale_amount;
+if last.sales_id then output;
+/* if last.sale_id ; */
+end;
+
+keep sales_id cum_sale;
+run;
+
+data Sales_records_cum;
+set temp;
+by sales_id transaction_date;
+retain cum_sale;
+if first.sales_id then cum_sale=sale_amount;
+else cum_sale=sale_amount+cum_sale;
+if last.sales_id then output;
+format cum_sale dollar16.;
+keep sales_id cum_sale;
+run;
+
+
+*q8;
+
+*intck;
+*link: https://v8doc.sas.com/sashtml/lgref/z0212868.htm;
+
+proc sort data=l.Retail_sales out=temp8; 
+by Store_num date; 
+run;
+
+
+
+data Retail_sales_new;
+set temp8;
+by Store_num date;
+retain firstdate lastdate sales_cum numdays;
+if first.Store_num then do;
+firstdate=date;
+sales_cum=Weekly_Sales;
+numdays=1;
+end;
+else do;
+sales_cum=sales_cum+Weekly_Sales;
+numdays=numdays+1;
+end;
+if last.Store_num then do;
+lastdate=date;
+avg_sales=round(sales_cum/numdays,1);
+output;
+end;
+format firstdate lastdate date9. avg_sales dollar11.;
+keep Store_num firstdate lastdate numdays avg_sales sales_cum;
+run;
