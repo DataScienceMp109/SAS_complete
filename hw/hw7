@@ -1,0 +1,116 @@
+
+*q1;
+1)'WORK.Product_records' 2)'WORK.Sales_employees' and 3)'WORK.Sales_records'
+
+
+%macro sort_data(data,id);
+proc sort data=&data;
+by &id;
+run;
+%mend;
+
+
+%sort_data(Sales_employees,sales_id);
+%sort_data(Sales_records,sales_id);
+
+data allrecords;
+merge Sales_employees(in=x) Sales_records(in=y);
+by sales_id;
+if x and y;
+run;
+
+
+
+%sort_data(allrecords,product_id);
+%sort_data(Product_records,product_id);
+
+data allrecords;
+merge allrecords(in=x) Product_records(in=y);
+by product_id;
+if x and y;
+run;
+
+
+*q2;
+data sale_em_south sale_em_north sale_em_west sale_em_east;
+ set Sales_employees;
+ if area = 'South' then output sale_em_south;
+ if area = 'North' then output sale_em_north;
+ if area = 'West' then output sale_em_west;
+ if area = 'East' then output sale_em_east;
+run;
+proc print;
+run;
+
+
+
+
+*q3;
+data transaction_june;
+set Sales_records;
+where product_id in ('P1','P3','P5','P9') and sales_id > 60000 and  transaction_date > '01JUN2013'd;
+run;
+proc print data=transaction_june;
+run;
+
+
+*q4;
+%sort_data(sale_em_east,sales_id);
+%sort_data(transaction_june,sales_id);
+
+
+data comb_4;
+merge sale_em_east(in=x) transaction_june(in=y);
+by sales_id;
+if x=0 and y=1;
+run;
+
+
+%sort_data(comb_4,product_id);
+%sort_data(Product_records,product_id);
+
+
+data comb_4;
+merge comb_4(in=x) Product_records(in=y);
+by product_id;
+if x and y;
+run;
+
+
+*q5;
+
+Data employee_new1; 
+set WORK.employee_1 WORK.employee_2; 
+Run; 
+
+Data employee_new2; 
+set WORK.employee_2 WORK.employee_1; 
+Run; 
+
+Data employee_new3; 
+set WORK.employee_1; 
+set WORK.employee_2; 
+Run; 
+
+Data employee_new4; 
+set WORK.employee_2; 
+set WORK.employee_2; 
+Run;
+
+
+*q6;
+Data employee_new_10; 
+if _n_=1 then set owner;
+set WORK.employee_1 WORK.employee_2;  
+/*if age ne . then agegroup=age;*/
+Run; 
+
+
+*q7;
+%sort_data(Sales_employees,sales_id);
+%sort_data(Sales_records,sales_id);
+
+data allrecords11;
+set Sales_employees Sales_records;
+by sales_id;
+run;
