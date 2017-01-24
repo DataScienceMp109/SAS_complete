@@ -1,0 +1,81 @@
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+
+
+
+
+*q1;
+proc contents data=WORK.creditcard;
+run;
+
+
+*SAS: NODUPKEY and NODUPREC;
+*link: http://www2.sas.com/proceedings/sugi30/037-30.pdf;
+
+*q2;
+PROC sort data=CREDITCARD out= CREDITCARD1 NODUPKEY;
+ By Cardtype Owner;
+Run;
+
+*q3;
+PROC sort data=CREDITCARD out= CREDITCARD2 NODUPREC;
+ By Cardtype Owner;
+Run;
+
+
+*SAS Proc print;
+*link: http://www.cpc.unc.edu/research/tools/data_analysis/sastopics/print;
+
+%sort_data(CREDITCARD2,Cardtype);
+
+*q4;
+proc print data= CREDITCARD2 noobs;
+where Owner = 'Big Banks';
+by Cardtype;
+run;
+
+
+%sort_data(CREDITCARD2,Cardtype);
+*q5;
+proc print data= CREDITCARD2 noobs;
+/*where Owner = 'Big Banks';*/
+var Area Balance Limit;
+by Cardtype ;
+SUM Balance;
+run;
+
+
+*q6;
+%sort_data(CREDITCARD2,Cardtype,Owner);
+PROC print data=CREDITCARD2; 
+VAR Area Balance limit; 
+SUM Balance; 
+BY Cardtype Owner; 
+SUMBY Cardtype; 
+RUN;
+
+
+*q7;
+proc print data=callcenter
+(obs=5);
+run;
+
+
+*q8;
+%sort_data(callcenter,business_home);
+proc transpose data=callcenter;
+by business_home;
+var last_hours;
+run;
+
+
+*q9;
+proc transpose data=PRODUCT_SAMPLE prefix=P name=item;
+var tran_amount tran_count;
+id product_id;
+idlabel product_type;
+run;
