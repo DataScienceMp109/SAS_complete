@@ -1,0 +1,215 @@
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+
+
+
+*q2;
+
+*sas compress;
+*link: http://studysas.blogspot.com/2010/02/compress-function-function-strips.html;
+
+*sas declare array;
+*link: http://support.sas.com/documentation/cdl/en/lrcon/62955/HTML/default/viewer.htm#a000739642.htm;
+
+data overdue_new;
+ set WORK.Overdue;
+ array due[12] _numeric_;
+ array overdue{12} $ overdue_1-overdue_12 ;
+ count=0;
+ retain count;
+ do i=1 to dim(due);
+     if due[i]=1 then do; count=count+1;
+     overdue[i]='yes';
+     end;
+     else do;
+     overdue[i]='no';
+     end;
+ end;
+ overdue_rate=round(count/12,0.001);
+run;
+
+*q3;
+
+*SAS: error:
+*location: https://v8doc.sas.com/sashtml/lgref/z0289394.htm;
+
+data phone; 
+infile datalines DSD; 
+length id 3. tel_number $20.; 
+input id tel_number $; 
+datalines; 
+1,(988)463-4490 
+2,(241) 343-2233 
+3,456-5034 
+4,(123)456-7890 
+5,(271)SH4-1234 
+6,(592)2578362 
+; 
+run;
+
+data phone_verify;
+set phone;
+num_nospace=trim(left(compress(tel_number)));
+condition1=(substr(num_nospace,1,1)='(');
+condition2=(substr(num_nospace,5,1)=')');
+try=substr(num_nospace,2,3)+0;
+condition3=(_error_=0);
+try=substr(num_nospace,6,3)+0;
+condition4=(_error_=0);
+condition5=(substr(num_nospace,9,1)='-');
+try=substr(num_nospace,10)+0;
+condition6=(_error_=0);
+condition7=(length(num_nospace)=13);
+cond=sum(of condition1-condition7);
+if cond=7 then valid='YES';
+else valid='NO';
+keep id tel_number valid;
+run;
+
+
+*q4;
+
+data grade_new;
+ set exam_grade;
+ array grade [12] $ _character_;
+ array standard [12] $ _temporary_ ('A' 'B' 'D' 'A' 'C' 'A' 'B' 'B' 'D' 'A' 'B' 'B');
+ array score[12] s1-s12;
+ do i = 1 to dim(grade);
+   if grade[i]=standard[i] then do;
+   score[i]=1;
+   end;
+   if grade[i] ne standard[i] and grade[i] ne 9 then do;
+   score[i]=0;
+   end;
+   if grade[i] = 9 then do;
+   score[i]=0.5;
+   end;
+ end;
+ total_score=sum(of score[*]);
+ final_grade=round(total_score/12,0.001)*100;
+ drop i total_score;
+run;
+
+
+*q5;
+
+*SAS: Dif
+*Location: http://support.sas.com/documentation/cdl/en/imlug/66845/HTML/default/viewer.htm#imlug_langref_sect102.htm;
+
+*SAS  Lag
+*Location: http://support.sas.com/documentation/cdl/en/imlug/66845/HTML/default/viewer.htm#imlug_langref_sect223.htm;
+
+data transaction_new;
+ set WORK.transaction;
+run;
+
+proc sort data = transaction_new;
+by customer_id descending tran_time;
+run;
+
+
+data transaction_new_2;
+ set transaction_new;
+time_diff_1= INTCK('hour',tran_time,lag(tran_time));
+time_diff_2= INTCK('hour',tran_time,lag2(tran_time));
+time_diff_3= INTCK('hour',tran_time,lag3(tran_time));
+
+amount_1=lag(amount);
+amount_2=lag2(amount);
+amount_3=lag3(amount);
+
+/* format time_diff_1 datetime16. ; */
+run;
+
+
+
+Data transaction_lag;
+set transaction;
+array a[3] time_dif_1-time_dif_3;
+array b[3] amount_1-amount_3;
+if first='N' then do;
+time_dif_1=round(dif1(tran_time)/3600,0.01);
+time_dif_2=round(dif2(tran_time)/3600,0.01);
+time_dif_3=round(dif3(tran_time)/3600,0.01);
+amount_1=lag1(amount);
+amount_2=lag2(amount);
+amount_3=lag3(amount);
+end;
+last_tran_time=tran_time;
+if last='Y' then output;
+format amount_1-amount_3 dollar10. last_tran_time datetime16.;
+keep customer_id last_tran_time
+time_dif_1-time_dif_3 amount_1-amount_3;
+run;
+
+
+*q6;
+data dailyprice_new;
+ set work.dailyprice;
+ array price50[50] pc_1-pc_50;
+meanprice50=mean(of price50[*]);
+maxprice50 =max(of price50[*]);
+minprice50 =min(of price50[*]);
+rangeprice50 =range(of price50[*]);
+stdprice50 =std(of price50[*]);
+
+array price30[30] pc_1-pc_30;
+array vol30[30] vo_1-vo_30;
+array changerate_price[30] c1-c30;
+array changerate_vol[30] v1-v30;
+
+do i= 1 to dim(price30);
+       if i = 1 then do; 
+       changerate_price[i]=0;
+       changerate_vol[i]=0;
+       end;
+       else do;
+       changerate_price[i]=(price30[i]-price30[i-1])/price30[i-1];
+       changerate_vol[i]=(vol30[i]-vol30[i-1])/vol30[i-1];
+       end;
+end;
+
+
+run;
+
+
+*q7;
+*Create SAS date value
+*Location: https://sites.google.com/site/sasbuddy/sas-date-function-mdy;
+
+data Ticketinfo_new;
+ set WORK.Ticketinfo;
+new_name=TRANWRD(ticket,'TO*','');
+destination =scan(new_name,1,'_');
+new_date =compress(scan(new_name,2,'_'));
+y=substr(new_date ,1,4);
+m=substr(new_date ,5,2);
+d=substr(new_date ,7,2);
+
+start_time =mdy(m,d,y);
+age = intck('year',birth_date,today());
+/*  destination */
+/*  start_time */
+/*  age */
+format start_time mmddyy8.;
+drop y m d new_date new_name;
+run;
+
+
+
+*q8;
+data new_cus;
+ set WORK.Customers;
+ where Lan_spoken='E';
+ 
+run;
+
+
+data cus_sp;
+ set new_cus;
+if ranuni(_n_) < 1000/4950;
+run;
+
+
