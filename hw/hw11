@@ -1,0 +1,35 @@
+
+*q1;
+*proc rank;
+*link: https://v8doc.sas.com/sashtml/proc/z0146840.htm;
+proc rank data=spend_income groups=3 out=spend_income_1;
+  var Spend income;
+  ranks Spend_gp Income_gp;
+run;
+
+*q2;
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+
+%sort_data(employee,dep_id);
+
+proc rank data=employee  descending out=employee_rk TIES=LOW out=spend_income_1;
+by dep_id;
+var tenure;
+/*  var Spend income;*/
+  ranks tenure_order;
+run;
+
+
+%sort_data(employee,dep_id,tenure);
+
+proc rank data=employee  out=employee_rk2 TIES=HIGH out=spend_income_1;
+by dep_id;
+var tenure;
+/*  var Spend income;*/
+  ranks tenure_order;
+run;
