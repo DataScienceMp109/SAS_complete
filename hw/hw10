@@ -1,0 +1,28 @@
+
+*q1;
+data b;
+ set WORK.Risk_data;
+run;
+
+
+*Test Normality;
+*Kolmogorov-Smirnov Goodness-of-Fit Test;
+*link: http://www.itl.nist.gov/div898/handbook/eda/section3/eda35g.htm;
+*link: https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test;
+
+
+*PROC univariate;
+*link: http://support.sas.com/documentation/cdl/en/procstat/66703/HTML/default/viewer.htm#procstat_univariate_syntax.htm;
+*link: http://www.stattutorials.com/SAS/TUTORIAL-PROC-UNIVARIATE.htm;
+
+
+PROC univariate data=Risk_data  normal plot vardef=df mu0=150;
+   Var utilization;
+/*   ppplot;*/
+   PROBPLOT;
+/*   qqplot;*/
+   histogram utilization/ midpoints = 0 to 150 by 10  normal;
+   OUTPUT OUT=STATS MEAN=utilization MEDIAN=utilization_median mode=utilization_mode
+stddev=utilization_std;
+ Run;
+
