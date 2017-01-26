@@ -1,0 +1,48 @@
+
+*q1;
+
+*SAS ODS;
+*link: https://support.sas.com/rnd/base/ods/odsprinter/PDF-tips.pdf;
+*https://support.sas.com/rnd/base/ods/scratch/ods-tips.pdf;
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+
+%sort_data(Coffee_data_new,age);
+
+
+data Coffee_data_new;
+set Coffee_data;
+run;
+
+%sort_data(Coffee_data_new,age);
+
+ODS PDF file='C:\Users\Mo.Pei\Desktop\SAS_Complete\hk_m\material\coffee_data_new.pdf'
+title='Tea Survey by Age Group';
+proc means data=Coffee_data_new mean max n;
+class age;
+var cup_tea;
+output out=Coffee_data_new_1;
+run;
+
+ODS PDF CLOSE;
+
+
+ODS HTML path='C:\Users\Mo.Pei\Desktop\SAS_Complete\hk_m\material'      /* output files path */
+   body='creditCBODY.html'               /* body */
+   contents='creditCONTENTS.html'        /* table of contents */
+   frame='creditFRAME.html'                  /* main webpage */
+   page='creditPAGE.html'                    /* table of pages */
+/*   base='http://www.link/home/'           /* URL prefix (optional) */
+ style=HTMLBlue;
+
+proc means data=Coffee_data_new mean max n;
+class age;
+var cup_tea;
+output out=Coffee_data_new_1;
+run;
+
+ODS HTML CLOSE;
