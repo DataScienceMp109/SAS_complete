@@ -1,0 +1,101 @@
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+
+%sort_data(Coffee_data,Smoker);
+
+proc means data= Coffee_data nmiss;
+class Smoker;
+var Cups_Per_Week;
+output out=coffee_sum0(drop=_type_) mean=mean max=max n=n nmiss=nmiss;
+run;
+
+data coffee_sum0 ;
+ set coffee_sum0;
+if smoker = '' then smoker = 'All';
+run;
+
+*q2;
+*SAS Proc means
+*link: http://support.sas.com/documentation/cdl/en/proc/65145/HTML/default/viewer.htm#p0f0fjpjeuco4gn1ri963f683mi4.htm;
+%sort_data(Coffee_data,Gender,Smoker);
+
+proc means data= Coffee_data nmiss;
+by Gender Smoker;
+var Cups_Per_Week income;
+output out=coffee_sum0(drop=_type_ rename=(_freq_=totcount)) 
+ mean(Cups_Per_Week income)= Cups_Per_Week income;
+output out=coffee_sum1(drop=_type_ rename=(_freq_=totcount)) 
+ mean(income)= income_average n(income)=count nmiss(income)=nmiss;
+output out=coffee_sum2(drop=_type_ rename=(_freq_=totcount)) 
+ mean(Cups_Per_Week )= Cups_Per_Week_average n(Cups_Per_Week )=count nmiss(Cups_Per_Week)=nmiss;
+run;
+
+
+*q3;
+
+proc format;
+value inrg 
+0 -<20000 = '0-20000'
+20000 -<50000='20000-50000'
+50000 -<80000='50000-80000'
+80000 ge = '80000P'
+.= 'MISSING'
+;
+run;
+
+%sort_data(Coffee_data,income);
+
+proc means data=coffee_data;
+by income;
+format income inrg.;
+var Cups_Per_Week married;
+output out=coffee_sum4(drop=_type_ rename=(_freq_=totconut))
+mean(Cups_Per_Week married)=Cups_Per_Week_avg married_avg nmiss(Cups_Per_Week )=nmiss
+;
+run;
+
+
+*q4;
+*SAS freq: 
+*link: http://www.cpc.unc.edu/research/tools/data_analysis/sastopics/freq;
+*link: http://support.sas.com/documentation/cdl/en/procstat/66703/HTML/default/viewer.htm#procstat_freq_syntax.htm;
+
+proc freq data=coffee_data;
+table gender*employment/ list missing out=freq1;
+;
+run;
+
+
+*q5;
+
+proc format;
+value cups
+0-<0 = 'none'
+1-<2 = 'slight'
+2-<3 = 'Medium'
+4-HIGH = 'heavy'
+OTHER = 'Missing'
+;
+run;
+
+proc freq data=coffee_data;
+table age*Cups_Per_Week/out=fre2 nofreq nocol norow missing;
+format Cups_Per_Week cups.;
+run;
+
+
+%sort_data(Coffee_data,age);
+
+*q6;
+proc freq data=coffee_data;
+by age;
+table gender;
+run;
