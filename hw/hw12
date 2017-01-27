@@ -46,3 +46,64 @@ output out=Coffee_data_new_1;
 run;
 
 ODS HTML CLOSE;
+
+
+
+*SAS ODS;
+*link: http://support.sas.com/resources/papers/proceedings12/271-2012.pdf;
+*link: https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_ods_sect003.htm;
+
+
+
+
+*q2;
+data WORK.Coffee_data2;
+ set WORK.Coffee_data;
+run;
+
+options nodate;
+ods trace on;
+proc univariate data=Coffee_data2 normal plot;
+var income;
+
+ods output  MissingValues=MS Quantiles=QT;
+run;
+ods trace off;
+
+*q3;
+PROC TEMPLATE;
+   DEFINE STYLE styles.newtep;
+   PARENT=styles.D3d;
+   STYLE header FROM header/
+   BACKGROUND= blue
+   FONT_FACE= "arial"
+   FONT_WEIGHT= bold;
+   STYLE systemtitle FROM systemtitle /
+   FONT_STYLE=italic
+   FONT_FACE= "arial"
+   FONT_WEIGHT= bold;
+   STYLE table FROM table /
+   BORDERWIDTH=3;
+   END;
+RUN;
+
+
+proc sort data=work.coffee_data2;
+by age;
+run;
+
+ods pdf file='/folders/myfolders/sas_complete/dsfs.pdf'
+style=styles.newtep;
+proc means data=work.coffee_data2 ;
+class age;
+var cup_tea;
+run;
+ods pdf close;
+
+
+
+
+
+
+
+
