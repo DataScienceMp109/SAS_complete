@@ -1,0 +1,88 @@
+
+*q1;
+
+libname l 'C:\Users\Mo.Pei\Desktop\SAS_Complete\hk_m\material';
+
+
+*SAS Proc contents;
+*Link: http://www.cpc.unc.edu/research/tools/data_analysis/sastopics/contents;
+*Link: http://libguides.library.kent.edu/SAS/ViewContents;
+
+data Fin_account_1;
+ set Fin_account;
+run;
+
+proc contents data=Fin_account_1 out=v(keep= name type length format column);
+run;
+
+
+
+*q2;
+
+proc format ;
+value type_name
+1 = 'numeric'
+2= 'character'
+;
+run;
+
+proc sql;
+create table Fin_account as
+select put(type, type_name.) as Type, count(*) as count
+from v
+group by type
+;
+quit;
+
+
+*q3;
+*Viewing the Contents of SAS Libraries;
+*Link: https://onlinecourses.science.psu.edu/stat480/node/24;
+
+proc contents data=out._all_    out=alltables
+(keep=libname memname name type);
+run;
+
+proc sql;
+create table Fin_account2 as
+select put(type, type_name.) as Type, count(*) as count
+from alltables
+group by type
+;
+quit;
+
+
+*q5;
+
+*SAS datasets;
+*Link: https://sites.google.com/site/sasbuddy/proc-datasets-copy-save-move-kill-modify-rename-delete;
+
+WORK.Churn and WORK.Ticketinfo;
+
+libname mylib "C:\Users\Mo.Pei\Desktop\SAS_Complete\hk_m\material";
+
+*(1);
+proc datasets library=work;
+copy in=work out=mylib;
+select Churn Ticketinfo;
+run;
+
+*(2);
+proc datasets library=mylib;
+Modify Ticketinfo;
+rename name=customer_name;
+rename birth_date=BOD;
+run;
+
+*(3);
+proc datasets library=mylib;
+modify churn;
+format bill_date date9.;
+label bill_date='Bill Date';
+run;
+
+*(4);
+proc datasets lib=mylib nolist kill;
+quit;
+run;
+
