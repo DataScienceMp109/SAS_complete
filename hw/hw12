@@ -47,8 +47,6 @@ run;
 
 ODS HTML CLOSE;
 
-
-
 *SAS ODS;
 *link: http://support.sas.com/resources/papers/proceedings12/271-2012.pdf;
 *link: https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_ods_sect003.htm;
@@ -69,6 +67,16 @@ var income;
 ods output  MissingValues=MS Quantiles=QT;
 run;
 ods trace off;
+
+
+ods trace on/listing;
+proc means data=work.coffee_data2 ;
+class age;
+var cup_tea;
+ods output summary = summary;
+run;
+ods trace off;
+
 
 *q3;
 PROC TEMPLATE;
@@ -93,13 +101,12 @@ by age;
 run;
 
 ods pdf file='/folders/myfolders/sas_complete/dsfs.pdf'
-style=styles.newtep;
+style=styles.d3d;
 proc means data=work.coffee_data2 ;
 class age;
 var cup_tea;
 run;
 ods pdf close;
-
 
 
 
