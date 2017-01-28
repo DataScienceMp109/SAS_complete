@@ -1,0 +1,132 @@
+
+*q6;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+
+
+%sort_data(Coffee_data_new,age);
+
+data Travel_delay_new;
+ set Travel_delay;
+run;
+
+*a;
+proc sql;
+create table no_delay as
+select count(*)
+from Travel_delay_new
+where delaycat = 'No Delay'
+;
+quit;
+
+
+*b;
+proc sql;
+create table qb as
+select delay,dest, date
+from Travel_delay_new
+where 
+dest='WAS'and 
+((month(date) le 3) and (day(date) le 5))
+order by delay
+;quit;
+
+*c;
+proc sql;
+create table qc as
+select delaycat, count(*)as num_type
+from Travel_delay_new
+group by delaycat
+;
+quit;
+
+*d;
+proc sql;
+create table qd as
+select distinct dest,destype
+from Travel_delay_new
+;
+quit;
+
+*e;
+Proc SQL;
+   Update Travel_delay_new 
+   set destype='INTER' 
+   where destype='International' ;
+
+   Update Travel_delay_new 
+   set destype='DOM'
+   where destype='Domestic';   
+Quit;
+
+*f;
+proc sql;
+create table qf as
+select mean(delay) as Delay_Avg
+from Travel_delay_new
+where abs(delay) le 10 
+;
+quit;
+
+*g;
+proc sql;
+delete 
+from qd 
+where dest='PAR'
+;
+quit;
+
+*h;
+
+proc sql;
+create table delay_march as
+select Dest, sum(delay) as Delay_total_time_mar
+from Travel_delay_new
+where month(date)=3
+group by dest
+;
+quit;
+
+
+proc sql;
+create table delay_april as
+select Dest, sum(delay) as Delay_total_time_apr
+from Travel_delay_new
+where month(date)=4
+group by dest
+;
+quit;
+
+proc sql;
+create table delay_summary as
+select *
+from delay_march m
+inner join delay_april a
+on m.dest=a.dest
+;
+quit;
+
+*i;
+proc sql;
+
+select distinct flight, date, dest,delay
+from Travel_delay_new
+where flight in (select flight from travel_flight
+where miles >3500 and capacity > 220)
+and month(date)=3 and year (date)=1994
+;
+
+quit;
+
+*q7;
+
+proc sql;
+select *,substr(cp,1,3) 
+from Big_cities
+where cp like 'USA%';
+quit;
