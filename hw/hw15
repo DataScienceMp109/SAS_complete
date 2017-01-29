@@ -1,0 +1,75 @@
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+*SAS proc tabulate;
+*Link: http://www2.sas.com/proceedings/sugi27/p060-27.pdf;
+*Link: http://www.iuj.ac.jp/faculty/kucc625/sas/tabulate.html;
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+%sort_data(Coffee_data_new,age);
+
+data Store_new;
+ set Store;
+run;
+
+proc tabulate data=Store_new;
+class type;
+var  amount;
+table (type='item type')*(n=tran_num)
+amount*sum='Totol amount';
+run;
+
+*q2;
+proc tabulate data=Store_new;
+class type;
+var amount;
+table type all, amount*(mean std max min n);
+run;
+
+
+*q3;
+proc tabulate data=Store_new;
+class type store_id;
+var amount;
+table amount*(mean*store_id n*store_id),type all;
+run;
+
+*q4;
+proc tabulate data=Store_new;
+class type store_id;
+var amount;
+table type all,amount*(mean*store_id n*store_id)
+n*pctn amount*pctsum;
+run;
+
+
+*q5;
+proc tabulate data= Coffee_data;
+class gender smoker;
+var cups_per_week;
+table gender*smoker,cups_per_week*(mean median max min)
+/box='Relationship among Gender, Smoker, and Coffee';
+run;
+
+*q6;
+proc tabulate data=coffee_data missing;
+class own_home employment;
+var income;
+table own_home*employment all='Total', income*(mean*f=dollar8. median*f=dollar8. max*f=dollar8. min*f=dollar8. n='Non Missing#' nmiss='Missing#')
+/box='Relationship among Gender, Smoker, and Coffee';
+run;
+
+*q7;
+proc tabulate data=Transaction_1;
+var amount;
+class type month online;
+table month online, amount*type*mean
+/box='Transaction statistics' misstext='N/A';
+run;
+
+         
