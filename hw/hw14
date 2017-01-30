@@ -1,4 +1,101 @@
 
+*q1;
+
+libname l 'C:\Users\Mo.Pei\Desktop\SAS_Complete\hk_m\material';
+
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+
+%sort_data(Coffee_data_new,age);
+
+
+proc sql;
+select *
+from Sales_employees
+;
+quit;
+
+proc contents data= sales_employees;
+run;
+
+proc sql;
+create table WORK.empres as
+select sales_name
+from Sales_employees
+where (20000 le sales_id le 40000)
+and area in ('North','South')
+;
+quit;
+
+
+*q2;
+proc contents data=sales_records;
+run;
+
+proc sql;
+select sales_id,product_id,sum(sale_amount) as total_sale_amount,count(sale_amount) as total_transaction
+from Sales_records
+group by sales_id,product_id
+/*order by total_sale_amount desc*/
+;
+quit;
+
+
+*q3;
+*SAS extract year, month, day;
+*Link: http://www.ats.ucla.edu/stat/sas/modules/dates.htm;
+
+proc sql;
+select sales_id,product_id,sum(sale_amount) as total_sale_amount,count(sale_amount) as total_transaction
+from Sales_records
+where (5 le month(transaction_date) le 9)
+group by sales_id,product_id
+having total_sale_amount>40000
+;
+quit;
+
+
+*q4;
+
+proc sql;
+create table salesarea as
+select sales_name, sale_amount, area
+from Sales_employees se
+inner join Sales_records sr
+        on se.sales_id = sr.sales_id
+;
+quit;
+ 
+proc sql;
+create table salesarea_sum as 
+select sales_name,area,max(sale_amount) as max_amt,min(sale_amount) as min_amt,mean(sale_amount) as mean_amt
+from salesarea
+group by sales_name,area
+;
+quit;
+
+
+*q5;
+
+*SAS proc sql case when;
+*Link: https://v8doc.sas.com/sashtml/proc/zsqlcase.htm;
+
+proc sql;
+create table Travel_flight_new as
+select flight,miles,empty_seats,case when 0 le (capacity - boarded) le 20 then empty_seats='low'
+                                 when 21 le (capacity - boarded) le 100 then empty_seats='medium'
+								 when 101 le (capacity - boarded) then  empty_seats='high'
+end as temp
+
+from Travel_flight
+where miles>1000
+;
+quit;
+
 *q6;
 libname l '/folders/myfolders/sas_complete/hk_data';
 
