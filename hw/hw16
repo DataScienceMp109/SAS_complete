@@ -1,0 +1,129 @@
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+*SAS proc tabulate;
+*Link: https://v8doc.sas.com/sashtml/proc/zdefstmt.htm;
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+%sort_data(Coffee_data_new,age);
+
+*SAS proc report compute;
+*Link: http://stackoverflow.com/questions/17810824/proc-report-compute;
+
+proc report data=customers;
+column ID SEX INCOME DEBT debtincome_ratio;
+define ID/ width=12;
+define Sex/width=12;
+define Income /width=12 'Yearly Income' ;
+define Debt/width=12 'Yearly Debt';
+define debtincome_ratio/computed width=12 'Debt income ratio' format=8.5;
+compute debtincome_ratio;
+ debtincome_ratio=_c4_/_c3_;
+endcomp;
+where (birth_day= . and income>90000 and debt>80000);
+run;
+
+*q2;
+proc report data=customers missing;
+column credit_has INCOME DEBT debtincome_ratio;
+define credit_has/width=12 group ;
+define Income /width=12 'Avg Yearly Income' mean ;
+define Debt/width=12 'Avg Yearly Debt' mean;
+define debtincome_ratio/computed width=12 'Debt income ratio' format=percent7.1;
+compute debtincome_ratio;
+ debtincome_ratio=_c3_/_c2_;
+endcomp;
+run;
+
+*q3;
+proc report data=customers;
+column sex INCOME DEBT mail_reachable debtincome_ratio;
+define sex/width=12 group ;
+define mail_reachable /width=12 across; 
+define Income /width=12 'Avg Yearly Income' mean ;
+define Debt/width=12 'Avg Yearly Debt' mean;
+define debtincome_ratio/computed width=12 'Debt income ratio' format=percent7.1;
+compute debtincome_ratio;
+ debtincome_ratio=_c3_/_c2_;
+endcomp;
+where sex ^= '.';
+compute after;
+   sector='TOTALS:';
+endcomp;
+rbreak after / summarize skip dul;
+run;
+
+*q4;
+*SAS proc format;
+*Link: http://blogs.sas.com/content/iml/2016/08/08/sas-formats-bin-numerical-variables.html;
+
+proc format;
+value agegroup
+18 -< 31 = '18 to 30'
+31 -< 61 = '31 to 60'
+61 -< 76 = '61 to 75'
+76 -HIGH = '75 Plus'
+;
+run;
+
+proc report data=risk_data;
+column age high_risk_ind revolving_num overdue90 dependents_num dependents_num=dependents_num_new;
+define age /width=12 group format=agegroup.;
+define high_risk_ind /width=12 group;
+define revolving_num /width=12 mean 'Avg # of revolving accounts' format=8.1; 
+define overdue90/width=12 'Avg # of 90 days overdue' mean format=8.1;
+define dependents_num/width=12 'no missing dependents num' n;
+define dependents_num_new/width=12 'missing dependents num' nmiss;
+break after age/ summarize skip ol;
+rbreak after / summarize skip dul;
+run;
+
+
+*q5;
+proc format; 
+value agegrp 
+0='TOTAL' 
+18 -<30 ='18 to 30' 
+30 -<60 ='31 to 60' 
+60 -<75 ='61 to 75' 
+75 -HIGH ='75 PLUS'; 
+run; 
+
+data WORK.Risk_data_1; 
+set Risk_data; 
+agegroup=put(age, agegrp.); 
+run;
+
+options nodate;
+ods pdf file='/folders/myfolders/sas_complete/reportq5.pdf' ;
+proc report data=risk_data_1;
+column agegroup dependents_num income debt_ratio utilization 
+utilization=utilization1 utilization=utilization2 high_risk_ind;
+define agegroup /width=12 group  style(header)=[foreground=white
+background=BLUE];
+define dependents_num/width=12 'no missing dependents num' n style(header)=[foreground=white
+background=BLUE];
+define income/width=12 mean 'Avg Income' format=dollar9. style(header)=[foreground=white
+background=BLUE]; 
+define debt_ratio/width=12 'Avg Debt Ratio' mean format=8.1 style(header)=[foreground=white
+background=BLUE];
+define utilization/width=12 'AVG UT' mean style(header)=[foreground=white
+background=BLUE];
+define utilization1/width=12 'MAX UT' max style(header)=[foreground=white 
+background=BLUE];
+define utilization2/width=12 'STD UT' std style(header)=[foreground=white
+background=BLUE];
+define high_risk_ind /width=12 'Bad Rate' mean style(header)=[foreground=white
+background=red] style(column)=[foreground=red
+background=white] format=percent7.1;
+rbreak after / summarize skip dul;
+compute after;
+   agegroup='Total';
+endcomp;
+run;
+ods pdf close;
