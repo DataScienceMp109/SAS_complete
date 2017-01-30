@@ -1,0 +1,40 @@
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+data q1_set;
+SET WORK.Manager WORK.Employee;
+run;
+
+data q1_set;
+SET WORK.Manager;
+set WORK.Employee;
+run;
+
+
+*q2;
+*SAS proc append;
+*Link: http://support.sas.com/documentation/cdl/en/basess/68381/HTML/default/viewer.htm#p0zo0l1za54nmpn1q379w70ppxkn.htm;
+
+proc append base=Allemployees_1 data=employee;
+run;
+
+proc append base=Allemployees_1 data=manager force;
+run;
+
+proc append base=Allemployees_2 data=manager ;
+run;
+
+proc append base=Allemployees_2 data=employee  force;
+run;
+
+data employee_new;
+ set employee;
+drop tenure;
+run;
+
+proc append base=Allemployees_3 data=manager ;
+run;
+
+proc append base=Allemployees_3 data=employee_new;
+run;
+
