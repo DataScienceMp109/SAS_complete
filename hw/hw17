@@ -38,3 +38,66 @@ run;
 proc append base=Allemployees_3 data=employee_new;
 run;
 
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+
+%sort_data(Coffee_data_new,age);
+
+*q3;
+*SAS proc surveyselect;
+*Link: http://www.amadeus.co.uk/sas-training/tips/3/1/85/creating-a-stratified-sample-of-data-using-proc-surveyselect.php;
+
+*Strata
+*Link: http://support.sas.com/resources/papers/proceedings09/058-2009.pdf;
+
+data new_sample;
+ set Goods_sell;
+if ranuni(298) le 0.1;
+run;
+
+
+*q4;
+%sort_data(Goods_sell,Transaction_type);
+
+proc surveyselect data=Goods_sell 
+out=Goods_sell_new 
+sampsize=(100, 50, 200, 100, 200);
+strata  Transaction_type;
+run;
+
+proc freq data=goods_sell_new;
+table transaction_type;
+run;
+
+
+*q5;
+proc means data=Coffee_data mean median min max nmiss std ;
+var income Cups_Per_Week ;
+run;
+
+data Coffee_data_fix;
+  set Coffee_data ;
+  income_miss_flag=(income=.);
+  Cups_Per_Week_miss_flag=(Cups_Per_Week =.);
+run;
+
+*q6;
+proc stdize data=Coffee_data_fix out=Coffee_data_fix_stdz reponly method= mean;
+ var income ;
+run;
+
+proc stdize data=Coffee_data_fix out=Coffee_data_fix_stdz reponly method= median;
+ var Cups_Per_Week ;
+run;
+
+proc stdize data=Coffee_data_fix out=Coffee_data_fix_stdz method= range;
+ var income Cups_Per_Week ;
+run;
+
