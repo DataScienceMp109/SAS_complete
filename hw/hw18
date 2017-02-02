@@ -19,3 +19,5 @@ run;
 *Spearman's rank correlation coefficient;
 *link: Spearman's rank correlation coefficient;
 
+*SAS proc reg, proc glm;
+*Link: http://www.stat.wisc.edu/~yandell/software/sas/linmod.html#anova;
