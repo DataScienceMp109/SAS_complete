@@ -1,0 +1,21 @@
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+
+%sort_data(Coffee_data_new,age);
+
+*SAS: proc corr;
+*Link: http://support.sas.com/documentation/cdl/en/procstat/66703/HTML/default/viewer.htm#procstat_corr_syntax01.htm;
+
+*Hoeffding's independence test;
+*https://en.wikipedia.org/wiki/Hoeffding's_independence_test;
+
+*Spearman's rank correlation coefficient;
+*link: Spearman's rank correlation coefficient;
+
