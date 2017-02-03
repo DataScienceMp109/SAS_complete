@@ -21,3 +21,54 @@ run;
 
 *SAS proc reg, proc glm;
 *Link: http://www.stat.wisc.edu/~yandell/software/sas/linmod.html#anova;
+
+
+
+
+proc corr data=Risk_data NOMISS outp=corr_info;
+var income debt_ratio high_risk_ind utilization age;
+run;
+
+
+*q2;
+
+proc corr data=Risk_data NOMISS outp=corr_best best=2;
+var income debt_ratio high_risk_ind utilization age;
+run;
+
+*q3;
+proc means data=Risk_data alpha=0.025 uclm lclm mean median std;
+var utilization ;
+run;
+
+*q4;
+data Risk_data_new;
+ set Risk_data ;
+if income >80000 then incomegrp = 'high_income';
+else incomegrp = 'others';
+run;
+
+proc ttest data=risk_data_new;
+var utilization;
+class incomegrp;
+run;
+
+*q5;
+data Risk_data_new_2;
+ set Risk_data ;
+ length agegrp $ 5.;
+if age le 30 then agegrp='0_30';
+if 31 le age and age le 50 then agegrp='31-50';
+if 51 le age and age le 65 then agegrp='51-65';
+if age ge 65 then agegrp='65p';
+run;
+
+proc ANOVA data=Risk_data_new_2;
+  class agegrp;
+  model utilization=agegrp;
+  means agegrp/DUNCAN ALPHA=0.05;
+run;
+
+
+
+
