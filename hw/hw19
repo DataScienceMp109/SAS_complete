@@ -1,0 +1,243 @@
+
+*q1;
+libname l '/folders/myfolders/sas_complete/hk_data';
+
+%macro sort_data(data,id,id1);
+proc sort data=&data;
+by &id &id1;
+run;
+%mend;
+
+%sort_data(Coffee_data_new,age);
+
+*SAS tokenization;
+*Link: http://www.lexjansen.com/nesug/nesug04/pm/pm07.pdf;
+
+*SAS compile and execution;
+*Link: http://sastrick.blogspot.com/2013/06/compile-time-statements-and-execution.html;
+
+
+%let DA=Employee; 
+%let var1=emp_id; 
+%let var2=dep_id; 
+%let t=List of Employees; 
+%let sa=60000;
+
+
+%put &DA; 
+%put &var1; 
+%put &var2; 
+%put &t; 
+%put &sa;
+
+
+
+%put "&t";
+%put '&t';
+
+*q2;
+
+/*******SAS codes 1*****************/
+Proc print data=&DA; 
+Var &var1 &var2 salary; 
+Where salary>&sa; 
+Title "&t"; 
+Run; 
+
+%let DA=Manager; 
+%let t=List of Managers;
+Proc print data=&DA ; 
+Var &var1 &var2 salary; 
+Where salary>&sa; 
+Title "&t"; 
+Run;
+
+/*******SAS codes 2*****************/ 
+Proc print data=Employee; 
+Var emp_id dep_id salary; 
+Where salary>60000; 
+Title "List of Employees"; 
+Run; 
+
+Proc print data=Manager; 
+Var emp_id dep_id salary; 
+Where salary>60000; 
+Title "List of Employees"; 
+Run;
+
+
+*q3;
+
+%let memid=E12; 
+%let mdepid=D1;
+
+
+data _null_;
+ set employee;
+if emp_id="&memid" and dep_id="&mdepid";
+call symput('m_tenure',tenure);
+run;
+%put &m_tenure;
+
+
+
+data _null_;
+ set manager;
+if emp_id="&memid" and dep_id="&mdepid";
+call symput('m_start_since',start_since);
+run;
+%put &m_start_since;
+
+
+*q4;
+
+%let mt=1; 
+%let ms=0.03; 
+%let mo=employee; 
+%let newt=newemployee;
+
+
+%macro getnew(mt,ms,mo,newt);
+data &newt.;
+ set &mo.;
+tenure=tenure+&mt.;
+salary=salary*(1+&ms.);
+run;
+%mend;
+
+%getnew(&mt.,&ms.,&mo.,&newt.);
+
+
+*q5;
+%macro createntables(n,salary_incr_per);
+	%do i=1 %to &n;
+		%if &i=1 %then %do;
+			data newemployee_1;
+			set employee;
+			tenure=tenure+1;
+			salary=salary*(1+&salary_incr_per.);
+			run;
+		%end; 
+		%if &i>1 %then %do;
+			%let i_pre=%eval(&i-1);
+			data newemployee_&i.;
+			set newemployee_&i_pre.;
+			tenure=tenure+1;
+			salary=salary*(1+&salary_incr_per.);
+			run;
+		%end;
+	%end;
+%mend;
+
+%createntables(5,0.03);
+
+*q6;
+
+%macro changebyyear(startyear,endyear,out);
+	proc sql;
+	create table diff&out. as
+	select f.emp_id, (s.salary-f.salary) as salary_increase
+	       ,(s.tenure-f.tenure) as tenure_increase
+	from newemployee_&startyear. f
+	inner join newemployee_&endyear. s
+	        on f.emp_id =s.emp_id;
+	quit;       
+%mend();
+
+
+%changebyyear(1,4,diff14);
+
+*q7;
+
+%macro changebyyear(d);
+	%local startyear;
+	%local endyear;
+	
+	%let startyear=%substr(&d,5,1);
+	%let endyear=%substr(&d,6,1);
+	
+	proc sql;
+	create table diff&startyear.&endyear. as
+	select f.emp_id, (s.salary-f.salary) as salary_increase
+	       ,(s.tenure-f.tenure) as tenure_increase
+	from newemployee_&startyear. f
+	inner join newemployee_&endyear. s
+	        on f.emp_id =s.emp_id;
+	quit;       
+%mend();
+
+
+%changebyyear(diff34);
+
+*q8;
+%createntables(5,0.03);
+
+data tax_adj_infor;
+input year tax_rate bonus_rate;
+datalines;
+1 0.23 0.11
+2 0.25 0.13
+3 0.25 0.1
+4 0.27 0.12
+5 0.3 0.15
+;
+run;
+
+data _null_;
+ set tax_adj_infor;
+ where year =1;
+ call symput('tax_rate',tax_rate);
+ call symput('bonus_rate',bonus_rate);
+run;
+
+
+
+%macro adj_inc_table(num_yr);
+	
+	data _null_;
+	 set tax_adj_infor;
+	 where year =&num_yr.;
+	 call symput('tax_rate',tax_rate);
+	 call symput('bonus_rate',bonus_rate);
+	run;
+	
+/* 	%local adj_rate; */
+	%let adj_rate=%sysevalf(&tax_rate-&bonus_rate);
+	
+	%put &adj_rate;
+
+	data newemployee_&num_yr.;
+	set newemployee_&num_yr.;
+	income=salary*(1-&adj_rate);
+	run;
+	proc print;
+	title "Table &num_yr.: Total Rate Adjusted: &adj_rate.";
+	run;
+
+%mend();
+
+%adj_inc_table(5);
+
+
+*q9;
+%let agelist=%str(30,40); 
+%let inputd=coffee_new; 
+%let outputd=coffee_result; 
+
+%macro createnew(agelist, inputd, outputd);
+proc sql noprint;
+select code into:mcode separated by ';'
+from Sas_code 
+;
+quit;
+
+data &outputd.;
+ set &inputd.;
+ &mcode.;
+ where age in (&agelist.);
+run;
+%mend();
+
+%createnew(&agelist., &inputd., &outputd.);
+
+
